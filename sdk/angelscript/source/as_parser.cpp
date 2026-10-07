@@ -3754,6 +3754,9 @@ asCScriptNode *asCParser::ParseClass()
 		{
 			Error(TXT_EXPECTED_METHOD_OR_PROPERTY, &t);
 			Error(InsteadFound(t), &t);
+			// skip to the end of the class body to avoid a shit ton of cascading errors
+			sToken end;
+			SkipToEndOfBlock(t.type == ttStartStatementBlock ? 2 : 1, t, end);
 			return node;
 		}
 
@@ -3908,6 +3911,29 @@ asCScriptNode *asCParser::SuperficiallyParseVarInit()
 	return node;
 }
 
+void asCParser::SkipToEndOfBlock(int level, sToken &start, sToken &end)
+{
+	while( level > 0 )
+	{
+		GetToken(&end);
+		if( end.type == ttEndStatementBlock )
+			level--;
+		else if( end.type == ttStartStatementBlock )
+			level++;
+		else if( end.type == ttNonTerminatedStringConstant )
+		{
+			Error(TXT_NONTERMINATED_STRING, &end);
+			break;
+		}
+		else if( end.type == ttEnd )
+		{
+			Error(TXT_UNEXPECTED_END_OF_FILE, &end);
+			Info(TXT_WHILE_PARSING_STATEMENT_BLOCK, &start);
+			break;
+		}
+	}
+}
+
 asCScriptNode *asCParser::SuperficiallyParseStatementBlock()
 {
 	asCScriptNode *node = CreateNode(snStatementBlock);
@@ -3928,26 +3954,7 @@ asCScriptNode *asCParser::SuperficiallyParseStatementBlock()
 
 	sToken start = t1;
 
-	int level = 1;
-	while( level > 0 && !isSyntaxError )
-	{
-		GetToken(&t1);
-		if( t1.type == ttEndStatementBlock )
-			level--;
-		else if( t1.type == ttStartStatementBlock )
-			level++;
-		else if( t1.type == ttNonTerminatedStringConstant )
-		{
-			Error(TXT_NONTERMINATED_STRING, &t1);
-			break;
-		}
-		else if( t1.type == ttEnd )
-		{
-			Error(TXT_UNEXPECTED_END_OF_FILE, &t1);
-			Info(TXT_WHILE_PARSING_STATEMENT_BLOCK, &start);
-			break;
-		}
-	}
+	SkipToEndOfBlock(1, start, t1);
 
 	node->UpdateSourcePos(t1.pos, t1.length);
 

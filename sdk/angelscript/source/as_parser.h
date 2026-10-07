@@ -102,6 +102,7 @@ protected:
 
 #ifndef AS_NO_COMPILER
 	// Statements
+	void           SkipToEndOfBlock(int level, sToken &start, sToken &end);
 	asCScriptNode *SuperficiallyParseStatementBlock();
 	asCScriptNode *SuperficiallyParseVarInit();
 	asCScriptNode *ParseStatementBlock();

@@ -1359,6 +1359,7 @@
 #endif
 
 // B3D compat
+#define AS_BOOL_SIZE_OVERRIDDEN
 #undef AS_SIZEOF_BOOL
 #define AS_SIZEOF_BOOL 4
 

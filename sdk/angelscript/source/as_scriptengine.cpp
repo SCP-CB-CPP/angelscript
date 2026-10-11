@@ -250,7 +250,9 @@ AS_API asIScriptEngine *asCreateScriptEngine(asDWORD version)
 	asASSERT( sizeof(asPWORD) == sizeof(void*) );
 
 	// Verify the boolean type
-	asASSERT( sizeof(bool) == AS_SIZEOF_BOOL );
+	// asASSERT( sizeof(bool) == AS_SIZEOF_BOOL ); 
+	// we override this to 4 for B3D compat, so it will no longer match up here
+
 	asASSERT( true == VALUE_OF_BOOLEAN_TRUE );
 
 	// Verify endianess
